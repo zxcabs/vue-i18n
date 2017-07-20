@@ -1,8 +1,14 @@
+import { createLocalVue, mount } from 'vue-test-utils'
+import VueI18n from '../../src/index'
 import messages from './fixture/index'
 import dateTimeFormats from './fixture/datetime'
 import numberFormats from './fixture/number'
 
 describe('basic', () => {
+  const localVue = createLocalVue()
+  VueI18n.install.installed = false
+  localVue.use(VueI18n)
+
   let i18n
   beforeEach(() => {
     i18n = new VueI18n({
@@ -298,57 +304,57 @@ describe('basic', () => {
   describe('$t', () => {
     describe('en locale', () => {
       it('should translate an english', () => {
-        const vm = new Vue({ i18n })
-        assert.equal(vm.$t('message.hello'), messages.en.message.hello)
+        const wrapper = mount({}, { localVue, i18n })
+        assert.equal(wrapper.vm.$t('message.hello'), messages.en.message.hello)
       })
     })
 
     describe('ja locale', () => {
       it('should translate a japanese', () => {
-        const vm = new Vue({ i18n })
-        assert.equal(vm.$t('message.hello', 'ja'), messages.ja.message.hello)
+        const wrapper = mount({}, { localVue, i18n })
+        assert.equal(wrapper.vm.$t('message.hello', 'ja'), messages.ja.message.hello)
       })
     })
 
     describe('key argument', () => {
       describe('not specify', () => {
         it('should return empty string', () => {
-          const vm = new Vue({ i18n })
-          assert.equal(vm.$t(), '')
+          const wrapper = mount({}, { localVue, i18n })
+          assert.equal(wrapper.vm.$t(), '')
         })
       })
 
       describe('empty string', () => {
         it('should return empty string', () => {
-          const vm = new Vue({ i18n })
-          assert.equal(vm.$t(''), '')
+          const wrapper = mount({}, { localVue, i18n })
+          assert.equal(wrapper.vm.$t(''), '')
         })
       })
 
       describe('not regist key', () => {
         it('should return key string', () => {
-          const vm = new Vue({ i18n })
-          assert.equal(vm.$t('foo.bar'), 'foo.bar')
+          const wrapper = mount({}, { localVue, i18n })
+          assert.equal(wrapper.vm.$t('foo.bar'), 'foo.bar')
         })
       })
 
       describe('sentence fragment', () => {
         it('should translate fragment', () => {
-          const vm = new Vue({ i18n })
-          assert.equal(vm.$t('hello world'), 'Hello World')
+          const wrapper = mount({}, { localVue, i18n })
+          assert.equal(wrapper.vm.$t('hello world'), 'Hello World')
         })
 
         it('should return replaced string if available', () => {
-          const vm = new Vue({ i18n })
+          const wrapper = mount({}, { localVue, i18n })
           assert.equal(
-            vm.$t('Hello {0}', ['kazupon']),
+            wrapper.vm.$t('Hello {0}', ['kazupon']),
             'Hello kazupon'
           )
         })
 
         it('should return key if unavailable', () => {
-          const vm = new Vue({ i18n })
-          assert.equal(vm.$t('Hello'), 'Hello')
+          const wrapper = mount({}, { localVue, i18n })
+          assert.equal(wrapper.vm.$t('Hello'), 'Hello')
         })
       })
     })
@@ -356,9 +362,9 @@ describe('basic', () => {
     describe('format arguments', () => {
       describe('named', () => {
         it('should return replaced string', () => {
-          const vm = new Vue({ i18n })
+          const wrapper = mount({}, { localVue, i18n })
           assert.equal(
-            vm.$t('message.format.named', { name: 'kazupon' }),
+            wrapper.vm.$t('message.format.named', { name: 'kazupon' }),
             'Hello kazupon, how are you?'
           )
         })
@@ -366,9 +372,9 @@ describe('basic', () => {
 
       describe('list', () => {
         it('should return replaced string', () => {
-          const vm = new Vue({ i18n })
+          const wrapper = mount({}, { localVue, i18n })
           assert.equal(
-            vm.$t('message.format.list', ['kazupon']),
+            wrapper.vm.$t('message.format.list', ['kazupon']),
             'Hello kazupon, how are you?'
           )
         })
@@ -377,16 +383,16 @@ describe('basic', () => {
 
     describe('locale argument', () => {
       it('should return empty string', () => {
-        const vm = new Vue({ i18n })
-        assert.equal(vm.$t('message.hello', 'ja'), messages.ja.message.hello)
+        const wrapper = mount({}, { localVue, i18n })
+        assert.equal(wrapper.vm.$t('message.hello', 'ja'), messages.ja.message.hello)
       })
     })
 
     describe('format & locale arguments', () => {
       it('should return replaced string', () => {
-        const vm = new Vue({ i18n })
+        const wrapper = mount({}, { localVue, i18n })
         assert.equal(
-          vm.$t('message.format.list', 'ja', ['kazupon']),
+          wrapper.vm.$t('message.format.list', 'ja', ['kazupon']),
           'こんにちは kazupon, ごきげんいかが？'
         )
       })
@@ -394,9 +400,9 @@ describe('basic', () => {
 
     describe('fallback', () => {
       it('should return fallback string', () => {
-        const vm = new Vue({ i18n })
+        const wrapper = mount({}, { localVue, i18n })
         assert.equal(
-          vm.$t('message.fallback', 'ja'),
+          wrapper.vm.$t('message.fallback', 'ja'),
           messages.en.message.fallback
         )
       })
@@ -407,57 +413,57 @@ describe('basic', () => {
   describe('$tc', () => {
     describe('en locale', () => {
       it('should translate plural english', () => {
-        const vm = new Vue({ i18n })
-        assert.equal(vm.$tc('plurals.car', 1), 'car')
+        const wrapper = mount({}, { localVue, i18n })
+        assert.equal(wrapper.vm.$tc('plurals.car', 1), 'car')
       })
     })
 
     describe('multi plural check', () => {
       it('should fetch pluralized string', () => {
-        const vm = new Vue({ i18n })
-        assert.equal(vm.$tc('plurals.car', 2), 'cars')
+        const wrapper = mount({}, { localVue, i18n })
+        assert.equal(wrapper.vm.$tc('plurals.car', 2), 'cars')
       })
     })
 
     describe('key argument', () => {
       describe('not specify', () => {
         it('should return empty string', () => {
-          const vm = new Vue({ i18n })
-          assert.equal(vm.$tc(), '')
+          const wrapper = mount({}, { localVue, i18n })
+          assert.equal(wrapper.vm.$tc(), '')
         })
       })
 
       describe('empty string', () => {
         it('should return empty string', () => {
-          const vm = new Vue({ i18n })
-          assert.equal(vm.$tc(''), '')
+          const wrapper = mount({}, { localVue, i18n })
+          assert.equal(wrapper.vm.$tc(''), '')
         })
       })
 
       describe('not regist key', () => {
         it('should return key string', () => {
-          const vm = new Vue({ i18n })
-          assert.equal(vm.$tc('foo.bar'), 'foo.bar')
+          const wrapper = mount({}, { localVue, i18n })
+          assert.equal(wrapper.vm.$tc('foo.bar'), 'foo.bar')
         })
       })
 
       describe('sentence fragment', () => {
         it('should translate fragment', () => {
-          const vm = new Vue({ i18n })
-          assert.equal(vm.$tc('hello world'), 'Hello World')
+          const wrapper = mount({}, { localVue, i18n })
+          assert.equal(wrapper.vm.$tc('hello world'), 'Hello World')
         })
 
         it('should return replaced string if available', () => {
-          const vm = new Vue({ i18n })
+          const wrapper = mount({}, { localVue, i18n })
           assert.equal(
-            vm.$tc('Hello {0}', 1, ['kazupon']),
+            wrapper.vm.$tc('Hello {0}', 1, ['kazupon']),
             'Hello kazupon'
           )
         })
 
         it('should return key if unavailable', () => {
-          const vm = new Vue({ i18n })
-          assert.equal(vm.$tc('Hello'), 'Hello')
+          const wrapper = mount({}, { localVue, i18n })
+          assert.equal(wrapper.vm.$tc('Hello'), 'Hello')
         })
       })
     })
@@ -465,9 +471,9 @@ describe('basic', () => {
     describe('format arguments', () => {
       describe('named', () => {
         it('should return replaced string', () => {
-          const vm = new Vue({ i18n })
+          const wrapper = mount({}, { localVue, i18n })
           assert.equal(
-            vm.$tc('plurals.format.named', 1, { name: 'kazupon' }),
+            wrapper.vm.$tc('plurals.format.named', 1, { name: 'kazupon' }),
             'Hello kazupon, how are you?'
           )
         })
@@ -475,9 +481,9 @@ describe('basic', () => {
 
       describe('list', () => {
         it('should return replaced string', () => {
-          const vm = new Vue({ i18n })
+          const wrapper = mount({}, { localVue, i18n })
           assert.equal(
-            vm.$tc('plurals.format.list', 1, ['kazupon']),
+            wrapper.vm.$tc('plurals.format.list', 1, ['kazupon']),
             'Hello kazupon, how are you?'
           )
         })
@@ -486,16 +492,16 @@ describe('basic', () => {
 
     describe('locale argument', () => {
       it('should return empty string', () => {
-        const vm = new Vue({ i18n })
-        assert.equal(vm.$tc('plurals.car', 1, 'ja'), 'ザ・ワールド')
+        const wrapper = mount({}, { localVue, i18n })
+        assert.equal(wrapper.vm.$tc('plurals.car', 1, 'ja'), 'ザ・ワールド')
       })
     })
 
     describe('format & locale arguments', () => {
       it('should return replaced string', () => {
-        const vm = new Vue({ i18n })
+        const wrapper = mount({}, { localVue, i18n })
         assert.equal(
-          vm.$tc('plurals.format.list', 1, 'ja', ['kazupon']),
+          wrapper.vm.$tc('plurals.format.list', 1, 'ja', ['kazupon']),
           'こんにちは kazupon, ごきげんいかが？'
         )
       })
@@ -503,9 +509,9 @@ describe('basic', () => {
 
     describe('fallback', () => {
       it('should return fallback string', () => {
-        const vm = new Vue({ i18n })
+        const wrapper = mount({}, { localVue, i18n })
         assert.equal(
-          vm.$tc('plurals.fallback', 2, 'ja'),
+          wrapper.vm.$tc('plurals.fallback', 2, 'ja'),
           'ザ・ワールド'
         )
       })
@@ -515,72 +521,54 @@ describe('basic', () => {
   describe('$te', () => {
     describe('existing key', () => {
       it('should return true', () => {
-        const vm = new Vue({ i18n })
-        assert(vm.$te('message.hello') === true)
+        const wrapper = mount({}, { localVue, i18n })
+        assert(wrapper.vm.$te('message.hello') === true)
       })
 
       it('should return true with locale', () => {
-        const vm = new Vue({ i18n })
-        assert(vm.$te('message.hello', 'ja') === true)
+        const wrapper = mount({}, { localVue, i18n })
+        assert(wrapper.vm.$te('message.hello', 'ja') === true)
       })
     })
 
     describe('not existing key', () => {
       it('should return false', () => {
-        const vm = new Vue({ i18n })
-        assert(vm.$te('message.hallo') === false)
+        const wrapper = mount({}, { localVue, i18n })
+        assert(wrapper.vm.$te('message.hallo') === false)
       })
 
       it('should return false with locale', () => {
-        const vm = new Vue({ i18n })
-        assert(vm.$te('message.hello', 'xx') === false)
+        const wrapper = mount({}, { localVue, i18n })
+        assert(wrapper.vm.$te('message.hello', 'xx') === false)
       })
     })
   })
 
   describe('i18n#locale', () => {
-    let el
-    beforeEach(() => {
-      el = document.createElement('div')
-      document.body.appendChild(el)
-    })
-
-    it('should be reactivity translate', done => {
-      const vm = new Vue({
-        el, i18n,
+    it('should be reactivity translate', () => {
+      const wrapper = mount({
         render (h) {
           return h('p', {}, [this.$t('message.hello')])
         }
-      })
-      nextTick(() => {
-        assert.equal(vm.$el.textContent, messages.en.message.hello)
-        i18n.locale = 'ja' // set japanese
-      }).then(() => {
-        assert.equal(vm.$el.textContent, messages.ja.message.hello)
-      }).then(done)
+      }, { localVue, i18n })
+      assert.equal(wrapper.text(), messages.en.message.hello)
+      i18n.locale = 'ja' // set japanese
+      wrapper.update()
+      assert.equal(wrapper.text(), messages.ja.message.hello)
     })
   })
 
   describe('i18n#fallbackLocale', () => {
-    let el
-    beforeEach(() => {
-      el = document.createElement('div')
-      document.body.appendChild(el)
-    })
-
-    it('should be reactivity translate', done => {
-      const vm = new Vue({
-        el, i18n,
+    it('should be reactivity translate', () => {
+      const wrapper = mount({
         render (h) {
           return h('p', {}, [this.$t('message.fallback1')])
         }
-      })
-      nextTick(() => {
-        assert.equal(vm.$el.textContent, 'message.fallback1')
-        i18n.fallbackLocale = 'ja' // set fallback locale
-      }).then(() => {
-        assert.equal(vm.$el.textContent, messages.ja.message.fallback1)
-      }).then(done)
+      }, { localVue, i18n })
+      assert.equal(wrapper.text(), 'message.fallback1')
+      i18n.fallbackLocale = 'ja' // set fallback locale
+      wrapper.update()
+      assert.equal(wrapper.text(), messages.ja.message.fallback1)
     })
   })
 

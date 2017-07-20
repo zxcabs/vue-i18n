@@ -1,4 +1,11 @@
+import { createLocalVue, mount } from 'vue-test-utils'
+import VueI18n from '../../src/index'
+
 describe('custom blocks', () => {
+  const localVue = createLocalVue()
+  VueI18n.install.installed = false
+  localVue.use(VueI18n)
+
   let i18n
   beforeEach(() => {
     i18n = new VueI18n({
@@ -12,9 +19,7 @@ describe('custom blocks', () => {
 
   describe('json string', () => {
     it('should be translated', done => {
-      const el = document.createElement('div')
-      const vm = new Vue({
-        i18n,
+      const wrapper = mount({
         components: {
           child: {
             __i18n: JSON.stringify({
@@ -23,51 +28,53 @@ describe('custom blocks', () => {
             }),
             render (h) {
               return h('div', {}, [
-                h('p', { ref: 'who' }, [this.$t('who')])
+                h('p', [this.$t('who')])
               ])
             }
           }
         },
         render (h) {
-          return h('div', {}, [h('child', { ref: 'child' })])
+          return h('div', {}, [h('child')])
         }
-      }).$mount(el)
-      nextTick(() => {
-        assert.equal(vm.$refs.child.$refs.who.textContent, '子')
-        i18n.locale = 'en'
-      }).then(() => {
-        assert.equal(vm.$refs.child.$refs.who.textContent, 'child')
-      }).then(done)
+      }, { localVue, i18n })
+      assert.equal(wrapper.text(), '子')
+      i18n.locale = 'en'
+      wrapper.update()
+      // TODO:
+      wrapper.vm.$nextTick(() => {
+        assert.equal(wrapper.text(), 'child')
+        done()
+      })
     })
   })
 
   describe('invalid json string', () => {
     it('should be fallbacked translation', done => {
       const spy = sinon.spy(console, 'warn')
-      const el = document.createElement('div')
-      const vm = new Vue({
-        i18n,
+      const wrapper = mount({
         components: {
           child: {
             __i18n: 'foo',
             render (h) {
               return h('div', {}, [
-                h('p', { ref: 'who' }, [this.$t('who')])
+                h('p', [this.$t('who')])
               ])
             }
           }
         },
         render (h) {
-          return h('div', {}, [h('child', { ref: 'child' })])
+          return h('div', {}, [h('child')])
         }
-      }).$mount(el)
-      nextTick(() => {
-        assert.equal(vm.$refs.child.$refs.who.textContent, 'ルート')
-        i18n.locale = 'en'
-      }).then(() => {
-        assert.equal(vm.$refs.child.$refs.who.textContent, 'root')
+      }, { localVue, i18n })
+      assert.equal(wrapper.text(), 'ルート')
+      i18n.locale = 'en'
+      wrapper.update()
+      // TODO:
+      wrapper.vm.$nextTick(() => {
+        assert.equal(wrapper.text(), 'root')
         spy.restore()
-      }).then(done)
+        done()
+      })
     })
   })
 })

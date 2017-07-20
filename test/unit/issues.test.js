@@ -1,22 +1,28 @@
+import { createLocalVue, mount } from 'vue-test-utils'
+import VueI18n from '../../src/index'
 import messages from './fixture/index'
 import { parse } from '../../src/format'
 
 describe('issues', () => {
-  let vm, i18n
+  const localVue = createLocalVue()
+  VueI18n.install.installed = false
+  localVue.use(VueI18n)
+
+  let wrapper, i18n
   beforeEach(() => {
     i18n = new VueI18n({
       locale: 'en',
       messages
     })
-    vm = new Vue({ i18n })
+    wrapper = mount({}, { localVue, i18n })
   })
 
 
   describe('#24', () => {
     it('should be translated', () => {
       assert.equal(
-        vm.$t('continue-with-new-account'),
-        messages[vm.$i18n.locale]['continue-with-new-account']
+        wrapper.vm.$t('continue-with-new-account'),
+        messages[wrapper.vm.$i18n.locale]['continue-with-new-account']
       )
     })
   })
@@ -24,7 +30,7 @@ describe('issues', () => {
   describe('#35', () => {
     it('should be translated', () => {
       assert.equal(
-        vm.$t('underscore', { helloMsg: 'hello' }),
+        wrapper.vm.$t('underscore', { helloMsg: 'hello' }),
         'hello world'
       )
     })
@@ -33,8 +39,8 @@ describe('issues', () => {
   describe('#42, #43', () => {
     it('should not be occured error', () => {
       assert.equal(
-        vm.$t('message[\'hello\']'),
-        messages[vm.$i18n.locale]['message']['hello']
+        wrapper.vm.$t('message[\'hello\']'),
+        messages[wrapper.vm.$i18n.locale]['message']['hello']
       )
     })
   })
@@ -42,7 +48,7 @@ describe('issues', () => {
   describe('#51', () => {
     it('should be translated', () => {
       assert.equal(
-        vm.$t('message.hyphen-locale'),
+        wrapper.vm.$t('message.hyphen-locale'),
         'hello hyphen'
       )
     })
@@ -50,9 +56,9 @@ describe('issues', () => {
 
   describe('#91, #51', () => {
     it('should be translated', () => {
-      const arrayMessages = messages[vm.$i18n.locale].issues.arrayBugs
+      const arrayMessages = messages[wrapper.vm.$i18n.locale].issues.arrayBugs
       for (let i = 0; i < arrayMessages.length; i++) {
-        const item = vm.$t('issues.arrayBugs')[i]
+        const item = wrapper.vm.$t('issues.arrayBugs')[i]
         assert.equal(item, arrayMessages[i])
       }
     })
@@ -61,69 +67,64 @@ describe('issues', () => {
   describe('#97', () => {
     it('should be translated', () => {
       assert.equal(
-        vm.$t('message.1234'),
-        messages[vm.$i18n.locale]['message']['1234']
+        wrapper.vm.$t('message.1234'),
+        messages[wrapper.vm.$i18n.locale]['message']['1234']
       )
       assert.equal(
-        vm.$t('message.1mixedKey'),
-        messages[vm.$i18n.locale]['message']['1mixedKey']
+        wrapper.vm.$t('message.1mixedKey'),
+        messages[wrapper.vm.$i18n.locale]['message']['1mixedKey']
       )
     })
   })
 
   describe('#169', () => {
-    it('should be translated', done => {
-      const Component = Vue.extend({
+    it('should be translated', () => {
+      const Component = {
         __i18n: JSON.stringify({
           en: { custom: 'custom block!' }
         }),
         render (h) {
           return h('p', { ref: 'custom' }, [this.$t('custom')])
         }
-      })
-      const vm = new Component({ i18n }).$mount()
-      nextTick(() => {
-        assert.equal(vm.$refs.custom.textContent, 'custom block!')
-      }).then(done)
+      }
+      const wrapper = mount(Component, { localVue, i18n })
+      assert.equal(wrapper.vm.$refs.custom.textContent, 'custom block!')
     })
   })
 
   describe('#170', () => {
     it('should be translated', () => {
-      assert.equal(vm.$i18n.t('message.linkHyphen'), messages.en['hyphen-hello'])
-      assert.equal(vm.$i18n.t('message.linkUnderscore'), messages.en.underscore_hello)
+      assert.equal(wrapper.vm.$i18n.t('message.linkHyphen'), messages.en['hyphen-hello'])
+      assert.equal(wrapper.vm.$i18n.t('message.linkUnderscore'), messages.en.underscore_hello)
     })
   })
 
   describe('#171', () => {
-    it('should be translated', done => {
-      vm = new Vue({
-        i18n,
+    it('should be translated', () => {
+      wrapper = mount({
         render (h) {
           return h('i18n', { props: { path: 'message.linkList' } }, [
             h('strong', [this.$t('underscore_hello')]),
             h('strong', [this.$t('message.link')])
           ])
         }
-      }).$mount()
-      nextTick(() => {
-        assert.equal(
-          vm.$el.innerHTML,
-          'the world: <strong>underscore the wolrd</strong> <strong>the world</strong>'
-        )
-      }).then(done)
+      }, { localVue, i18n })
+      assert.equal(
+        wrapper.html(),
+        '<span>the world: <strong>underscore the wolrd</strong> <strong>the world</strong></span>'
+      )
     })
   })
 
   describe('#172', () => {
-    it('should be translated', done => {
-      vm = new Vue({
-        i18n: new VueI18n({
-          locale: 'en',
-          messages: {
-            en: { 'company-name': 'billy-bob\'s fine steaks.' }
-          }
-        }),
+    it('should be translated', () => {
+      const i18n = new VueI18n({
+        locale: 'en',
+        messages: {
+          en: { 'company-name': 'billy-bob\'s fine steaks.' }
+        }
+      })
+      wrapper = mount({
         components: {
           comp: {
             __i18n: JSON.stringify({
@@ -137,46 +138,43 @@ describe('issues', () => {
         render (h) {
           return h('div', [h('comp', { ref: 'comp' })])
         }
-      }).$mount()
-      nextTick(() => {
-        assert.equal(
-          vm.$refs.comp.$refs.title.textContent,
-          'billy-bob\'s fine steaks. - yeee hawwww!!!'
-        )
-      }).then(done)
+      }, { localVue, i18n })
+      assert.equal(
+        wrapper.text(),
+        'billy-bob\'s fine steaks. - yeee hawwww!!!'
+      )
     })
   })
 
   describe('#173', () => {
-    it('should be translated', done => {
-      const Component = Vue.extend({
+    it('should be translated', () => {
+      const Component = {
         __i18n: JSON.stringify({
           en: { custom: 'custom block!' }
         }),
         render (h) {
           return h('p', { ref: 'custom' }, [this.$t('custom')])
         }
-      })
-      const vm = new Component({
+      }
+      const wrapper = mount(Component, {
+        localVue,
         i18n: new VueI18n({ locale: 'en' })
-      }).$mount()
-      nextTick(() => {
-        assert.equal(vm.$refs.custom.textContent, 'custom block!')
-      }).then(done)
+      })
+      assert.equal(wrapper.text(), 'custom block!')
     })
   })
 
   describe('#174', () => {
-    it('should be fallback', done => {
-      vm = new Vue({
-        i18n: new VueI18n({
-          locale: 'en',
-          fallbackLocale: 'ja',
-          messages: {
-            en: {},
-            ja: { msg: 'メッセージ' }
-          }
-        }),
+    it('should be fallback', () => {
+      const i18n = new VueI18n({
+        locale: 'en',
+        fallbackLocale: 'ja',
+        messages: {
+          en: {},
+          ja: { msg: 'メッセージ' }
+        }
+      })
+      wrapper = mount({
         components: {
           comp: {
             i18n: {
@@ -196,35 +194,30 @@ describe('issues', () => {
         render (h) {
           return h('div', [h('comp', { ref: 'comp' })])
         }
-      }).$mount()
-      const el1 = vm.$refs.comp.$refs.el1
-      const el2 = vm.$refs.comp.$refs.el2
-      nextTick(() => {
-        assert.equal(el1.textContent, 'こんにちは')
-        assert.equal(el2.textContent, 'メッセージ')
-      }).then(done)
+      }, { localVue, i18n })
+      assert.equal(wrapper.text(), 'こんにちはメッセージ')
     })
   })
 
   describe('#176', () => {
-    it('should be translated', done => {
-      vm = new Vue({
-        i18n: new VueI18n({
-          locale: 'xx',
-          fallbackLocale: 'en',
-          messages: {
-            en: {
-              'alpha': '[EN] alpha {gustav} value',
-              'bravo': '[EN] bravo {gustav} value',
-              'charlie': '[EN] charlie {0} value',
-              'delta': '[EN] delta {0} value'
-            },
-            xx: {
-              'bravo': '[XX] bravo {gustav} value',
-              'delta': '[XX] delta {0} value'
-            }
+    it('should be translated', () => {
+      const i18n = new VueI18n({
+        locale: 'xx',
+        fallbackLocale: 'en',
+        messages: {
+          en: {
+            'alpha': '[EN] alpha {gustav} value',
+            'bravo': '[EN] bravo {gustav} value',
+            'charlie': '[EN] charlie {0} value',
+            'delta': '[EN] delta {0} value'
+          },
+          xx: {
+            'bravo': '[XX] bravo {gustav} value',
+            'delta': '[XX] delta {0} value'
           }
-        }),
+        }
+      })
+      wrapper = mount({
         render (h) {
           return h('div', [
             h('p', { ref: 'el1' }, [this.$t('alpha', { gustav: 'injected' })]),
@@ -233,13 +226,11 @@ describe('issues', () => {
             h('p', { ref: 'el4' }, [this.$t('delta', ['injected'])])
           ])
         }
-      }).$mount()
-      nextTick(() => {
-        assert.equal(vm.$refs.el1.textContent, '[EN] alpha injected value')
-        assert.equal(vm.$refs.el2.textContent, '[XX] bravo injected value')
-        assert.equal(vm.$refs.el3.textContent, '[EN] charlie injected value')
-        assert.equal(vm.$refs.el4.textContent, '[XX] delta injected value')
-      }).then(done)
+      }, { localVue, i18n })
+      assert.equal(
+        wrapper.text(),
+        '[EN] alpha injected value[XX] bravo injected value[EN] charlie injected value[XX] delta injected value'
+      )
     })
   })
 

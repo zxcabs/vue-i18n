@@ -1,7 +1,12 @@
+import { createLocalVue, mount } from 'vue-test-utils'
+import VueI18n from '../../src/index'
 import messages from './fixture/index'
 
 describe('message', () => {
-  let el
+  const localVue = createLocalVue()
+  VueI18n.install.installed = false
+  localVue.use(VueI18n)
+
   let i18n
   let orgEnLocale
   let orgJaLocaleMessage
@@ -19,9 +24,6 @@ describe('message', () => {
     })
     orgEnLocale = i18n.getLocaleMessage('en').message.hello
     orgJaLocaleMessage = i18n.getLocaleMessage('ja')
-
-    el = document.createElement('div')
-    document.body.appendChild(el)
   })
 
   afterEach(() => {
@@ -37,28 +39,24 @@ describe('message', () => {
   })
 
   describe('getLocaleMessage / setLocaleMessage', () => {
-    it('should be worked', done => {
-      const vm = new Vue({
-        i18n,
+    it('should be worked', () => {
+      const wrapper = mount({
         render (h) {
-          return h('p', { ref: 'text' }, [this.$t('message.hello')])
+          return h('p', [this.$t('message.hello')])
         }
-      }).$mount(el)
+      }, { localVue, i18n })
 
-      const { text } = vm.$refs
-      nextTick(() => {
-        assert.equal(text.textContent, messages.en.message.hello)
-        // hot reload (set reactivity messages)
-        messages.en.message.hello = expectEnLocale
-        i18n.setLocaleMessage('en', messages.en)
-      }).then(() => {
-        assert.equal(text.textContent, expectEnLocale)
-        // upade locale
-        i18n.setLocaleMessage('ja', expectJaLocaleMessage)
-        i18n.locale = 'ja'
-      }).then(() => {
-        assert.equal(text.textContent, expectJaLocaleMessage.message.hello)
-      }).then(done)
+      assert.equal(wrapper.text(), messages.en.message.hello)
+      // hot reload (set reactivity messages)
+      messages.en.message.hello = expectEnLocale
+      i18n.setLocaleMessage('en', messages.en)
+      wrapper.update()
+
+      assert.equal(wrapper.text(), expectEnLocale)
+      // upade locale
+      i18n.setLocaleMessage('ja', expectJaLocaleMessage)
+      i18n.locale = 'ja'
+      wrapper.update()
     })
   })
 

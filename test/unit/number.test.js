@@ -1,7 +1,13 @@
+import { createLocalVue, mount } from 'vue-test-utils'
+import VueI18n from '../../src/index'
 import numberFormats from './fixture/number'
 
 const desc = VueI18n.availabilities.numberFormat ? describe : describe.skip
 desc('number format', () => {
+  const localVue = createLocalVue()
+  VueI18n.install.installed = false
+  localVue.use(VueI18n)
+
   describe('numberFormats', () => {
     it('should be worked', done => {
       const i18n = new VueI18n({
@@ -15,37 +21,30 @@ desc('number format', () => {
   })
 
   describe('getNumberFormat / setNumberFormat', () => {
-    it('should be worked', done => {
+    it('should be worked', () => {
       const i18n = new VueI18n({
         locale: 'en-US',
         numberFormats
       })
-      const el = document.createElement('div')
-      document.body.appendChild(el)
-
       const money = 101
-      const vm = new Vue({
-        i18n,
+      const wrapper = mount({
         render (h) {
-          return h('p', { ref: 'text' }, [this.$n(money, 'currency')])
+          return h('p', [this.$n(money, 'currency')])
         }
-      }).$mount(el)
+      }, { localVue, i18n })
 
-      const { text } = vm.$refs
       const zhFormat = {
         currency: {
           style: 'currency', currency: 'CNY', currencyDisplay: 'name'
         }
       }
-      nextTick(() => {
-        assert.equal(text.textContent, '$101.00')
-        i18n.setNumberFormat('zh-CN', zhFormat)
-        assert.deepEqual(i18n.getNumberFormat('zh-CN'), zhFormat)
-        i18n.locale = 'zh-CN'
-      }).then(() => {
-        // NOTE: avoid webkit (safari/phantomjs) & Intl polyfill wired localization...
-        isChrome && assert.equal(text.textContent, '101.00人民币')
-      }).then(done)
+      assert.equal(wrapper.text(), '$101.00')
+      i18n.setNumberFormat('zh-CN', zhFormat)
+      assert.deepEqual(i18n.getNumberFormat('zh-CN'), zhFormat)
+      i18n.locale = 'zh-CN'
+      wrapper.update()
+      // NOTE: avoid webkit (safari/phantomjs) & Intl polyfill wired localization...
+      isChrome && assert.equal(wrapper.text(), '101.00人民币')
     })
   })
 

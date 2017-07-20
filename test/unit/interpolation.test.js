@@ -1,3 +1,5 @@
+import { createLocalVue, mount } from 'vue-test-utils'
+import VueI18n from '../../src/index'
 import Component from '../../src/component'
 
 const messages = {
@@ -36,6 +38,10 @@ const components = {
 }
 
 describe('component interpolation', () => {
+  const localVue = createLocalVue()
+  VueI18n.install.installed = false
+  localVue.use(VueI18n)
+
   let i18n
   beforeEach(() => {
     i18n = new VueI18n({
@@ -46,43 +52,33 @@ describe('component interpolation', () => {
 
   describe('children', () => {
     describe('text nodes', () => {
-      it('should be interpolated', done => {
-        const el = document.createElement('div')
-        const vm = new Vue({
-          i18n,
+      it('should be interpolated', () => {
+        const wrapper = mount({
           render (h) {
             return h('i18n', { props: { path: 'text' } }, [this._v('1')])
           }
-        }).$mount(el)
-        nextTick(() => {
-          assert.equal(vm.$el.textContent, 'one: 1')
-        }).then(done)
+        }, { localVue, i18n })
+        assert.equal(wrapper.text(), 'one: 1')
       })
     })
 
     describe('premitive nodes', () => {
-      it('should be interpolated', done => {
-        const el = document.createElement('div')
-        const vm = new Vue({
-          i18n,
+      it('should be interpolated', () => {
+        const wrapper = mount({
           render (h) {
             return h('i18n', { props: { path: 'premitive' } }, [
               h('p', ['1']),
               h('p', ['2'])
             ])
           }
-        }).$mount(el)
-        nextTick(() => {
-          assert.equal(vm.$el.innerHTML, 'one: <p>1</p>, two: <p>2</p>')
-        }).then(done)
+        }, { localVue, i18n })
+        assert.equal(wrapper.html(), '<span>one: <p>1</p>, two: <p>2</p></span>')
       })
     })
 
     describe('components', () => {
-      it('should be interpolated', done => {
-        const el = document.createElement('div')
-        const vm = new Vue({
-          i18n,
+      it('should be interpolated', () => {
+        const wrapper = mount({
           components,
           render (h) {
             return h('i18n', { props: { path: 'component' } }, [
@@ -90,34 +86,26 @@ describe('component interpolation', () => {
               h('comp', { props: { msg: 'foo' } })
             ])
           }
-        }).$mount(el)
-        nextTick(() => {
-          assert.equal(vm.$el.innerHTML, 'element: <p>1</p>, component: <p>foo</p>')
-        }).then(done)
+        }, { localVue, i18n })
+        assert.equal(wrapper.html(), '<span>element: <p>1</p>, component: <p>foo</p></span>')
       })
     })
 
     describe('fallback', () => {
-      it('should be interpolated', done => {
-        const el = document.createElement('div')
-        const vm = new Vue({
-          i18n,
+      it('should be interpolated', () => {
+        const wrapper = mount({
           components,
           render (h) {
             return h('fallback')
           }
-        }).$mount(el)
-        nextTick(() => {
-          assert.equal(vm.$el.innerHTML, 'fallback from <p>child</p>')
-        }).then(done)
+        }, { localVue, i18n })
+        assert.equal(wrapper.html(), '<span>fallback from <p>child</p></span>')
       })
     })
 
     describe('nested components', () => {
-      it('should be interpolated', done => {
-        const el = document.createElement('div')
-        const vm = new Vue({
-          i18n,
+      it('should be interpolated', () => {
+        const wrapper = mount({
           components,
           render (h) {
             return h('i18n', { props: { path: 'component' } }, [
@@ -130,69 +118,55 @@ describe('component interpolation', () => {
               ])
             ])
           }
-        }).$mount(el)
-        nextTick(() => {
-          assert.equal(
-            vm.$el.innerHTML,
-            'element: <p>1</p>, component: <div><div class="nested">element: <p>2</p>, component: <p>nested</p></div></div>'
-          )
-        }).then(done)
+        }, { localVue, i18n })
+        assert.equal(
+          wrapper.html(),
+          '<span>element: <p>1</p>, component: <div><div class="nested">element: <p>2</p>, component: <p>nested</p></div></div></span>'
+        )
       })
     })
   })
 
   describe('linked', () => {
-    it('should be interpolated', done => {
-      const el = document.createElement('div')
-      const vm = new Vue({
-        i18n,
+    it('should be interpolated', () => {
+      const wrapper = mount({
         render (h) {
           return h('i18n', { props: { path: 'link' } }, [
             h('p', ['1']),
             h('p', ['2'])
           ])
         }
-      }).$mount(el)
-      nextTick(() => {
-        assert.equal(vm.$el.innerHTML, 'one: <p>1</p>, two: <p>2</p>')
-      }).then(done)
+      }, { localVue, i18n })
+      assert.equal(wrapper.html(), '<span>one: <p>1</p>, two: <p>2</p></span>')
     })
   })
 
   describe('locale', () => {
-    it('should be interpolated', done => {
-      const el = document.createElement('div')
-      const vm = new Vue({
-        i18n,
+    it('should be interpolated', () => {
+      const wrapper = mount({
         render (h) {
           return h('i18n', { props: { path: 'text', locale: 'ja' } }, [
             this._v('1')
           ])
         }
-      }).$mount(el)
-      nextTick(() => {
-        assert.equal(vm.$el.textContent, '一: 1')
-      }).then(done)
+      }, { localVue, i18n })
+      assert.equal(wrapper.html(), '<span>一: 1</span>')
     })
   })
 
   describe('included translation locale message', () => {
-    it('should be interpolated', done => {
-      const el = document.createElement('div')
-      const vm = new Vue({
-        i18n,
+    it('should be interpolated', () => {
+      const wrapper = mount({
         render (h) {
           return h('i18n', { props: { path: 'term' } }, [
             h('a', { domProps: { href: '/term', textContent: this.$t('tos') } })
           ])
         }
-      }).$mount(el)
-      nextTick(() => {
-        assert.equal(
-          vm.$el.innerHTML,
-          'I accept xxx <a href=\"/term\">Term of service</a>.'
-        )
-      }).then(done)
+      }, { localVue, i18n })
+      assert.equal(
+        wrapper.html(),
+        '<span>I accept xxx <a href=\"/term\">Term of service</a>.</span>'
+      )
     })
   })
 

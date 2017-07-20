@@ -1,7 +1,13 @@
+import { createLocalVue, mount } from 'vue-test-utils'
+import VueI18n from '../../src/index'
 import dateTimeFormats from './fixture/datetime'
 
 const desc = VueI18n.availabilities.dateTimeFormat ? describe : describe.skip
 desc('datetime format', () => {
+  const localVue = createLocalVue()
+  VueI18n.install.installed = false
+  localVue.use(VueI18n)
+
   describe('dateTimeFormats', () => {
     it('should be worked', done => {
       const i18n = new VueI18n({
@@ -15,40 +21,34 @@ desc('datetime format', () => {
   })
 
   describe('getDateTimeFormat / setDateTimeFormat', () => {
-    it('should be worked', done => {
+    it('should be worked', () => {
       const i18n = new VueI18n({
         locale: 'en-US',
         dateTimeFormats
       })
-      const el = document.createElement('div')
-      document.body.appendChild(el)
-
       const dt = new Date(Date.UTC(2012, 11, 20, 3, 0, 0))
-      const vm = new Vue({
-        i18n,
+      const wrapper = mount({
         render (h) {
           return h('p', { ref: 'text' }, [this.$d(dt, 'short')])
         }
-      }).$mount(el)
+      }, { localVue, i18n })
 
-      const { text } = vm.$refs
+      const { text } = wrapper.vm.$refs
       const zhFormat = {
         short: {
           year: 'numeric', month: '2-digit', day: '2-digit',
           hour: '2-digit', minute: '2-digit'
         }
       }
+      // NOTE: avoid webkit(phatomjs/safari) & Intl polyfill wired localization...
+      isChrome && assert.equal(text.textContent, '12/19/2012, 10:00 PM')
+      i18n.setDateTimeFormat('zh-CN', zhFormat)
+      assert.deepEqual(i18n.getDateTimeFormat('zh-CN'), zhFormat)
+      i18n.locale = 'zh-CN'
+      wrapper.update()
 
-      nextTick(() => {
-        // NOTE: avoid webkit(phatomjs/safari) & Intl polyfill wired localization...
-        isChrome && assert.equal(text.textContent, '12/19/2012, 10:00 PM')
-        i18n.setDateTimeFormat('zh-CN', zhFormat)
-        assert.deepEqual(i18n.getDateTimeFormat('zh-CN'), zhFormat)
-        i18n.locale = 'zh-CN'
-      }).then(() => {
-        // NOTE: avoid webkit(phatomjs/safari) & Intl polyfill wired localization...
-        isChrome && assert.equal(text.textContent, '2012/12/20 下午12:00')
-      }).then(done)
+      // NOTE: avoid webkit(phatomjs/safari) & Intl polyfill wired localization...
+      isChrome && assert.equal(text.textContent, '2012/12/20 下午12:00')
     })
   })
 

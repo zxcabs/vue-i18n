@@ -1,4 +1,11 @@
+import { createLocalVue, mount } from 'vue-test-utils'
+import VueI18n from '../../src/index'
+
 describe('missing', () => {
+  const localVue = createLocalVue()
+  VueI18n.install.installed = false
+  localVue.use(VueI18n)
+
   describe('via i18n instance API', () => {
     it('should be handled translate missing', done => {
       const i18n = new VueI18n({
@@ -17,18 +24,18 @@ describe('missing', () => {
 
   describe('via vue instance', () => {
     it('should be handled translate missing', done => {
-      const vm = new Vue({
-        i18n: new VueI18n({
-          locale: 'en',
-          missing: (locale, key, instance) => {
-            assert.equal('en', locale)
-            assert.equal('foo.bar.buz', key)
-            assert(vm === instance)
-            done()
-          }
-        })
+      let wrapper
+      const i18n = new VueI18n({
+        locale: 'en',
+        missing: (locale, key, instance) => {
+          assert.equal('en', locale)
+          assert.equal('foo.bar.buz', key)
+          assert(wrapper.vm === instance)
+          done()
+        }
       })
-      vm.$t('foo.bar.buz')
+      wrapper = mount({}, { localVue, i18n })
+      wrapper.vm.$t('foo.bar.buz')
     })
   })
 

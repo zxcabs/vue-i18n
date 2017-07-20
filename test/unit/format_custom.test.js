@@ -1,6 +1,12 @@
+import { createLocalVue, mount } from 'vue-test-utils'
+import VueI18n from '../../src/index'
 import messages from './fixture/index'
 
 describe('custom formatter', () => {
+  const localVue = createLocalVue()
+  VueI18n.install.installed = false
+  localVue.use(VueI18n)
+
   describe('via i18n instance API calling', () => {
     it('should allows for specifying a custom formatter', done => {
       class CustomFormatter {
@@ -27,14 +33,13 @@ describe('custom formatter', () => {
           done()
         }
       }
-      const vm = new Vue({
-        i18n: new VueI18n({
-          locale: 'en',
-          messages,
-          formatter
-        })
+      const i18n = new VueI18n({
+        locale: 'en',
+        messages,
+        formatter
       })
-      vm.$t('message.hello', [1, 2, 3])
+      const wrapper = mount({}, { localVue, i18n })
+      wrapper.vm.$t('message.hello', [1, 2, 3])
     })
   })
 
